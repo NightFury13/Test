@@ -1,0 +1,44 @@
+{{extend 'layout.html'}}
+<div style="background-color:lightgrey">
+ <p style="text-align:center;font-family:Times;font-size:40px"><b><u>Search</u></b></p>
+</div>
+<br>
+<br>
+<blockquote><!--
+<style>
+.suggestions { background: white; border: solid 1px #55A6C8;}
+.suggestions DIV { padding: 2px 4px 2px 4px;}
+</style>-->
+<form action="" method="get"><input name="keywords"><input
+type="submit"></form>
+<!--<form>
+	<input type="text" id="month" style="width: 250px"/><br/>
+	<div style="position: absolute;" id="suggestions" class="suggestions"></div>
+</form>
+<script>
+$("#vab").attr('onkeyup',"ajax('complete',['vab'],'suggestions')");
+</script>-->
+<pre>NOTE: The query must be atleast 3 characters long.</pre>
+<br>
+<table>
+<tr>
+    <td><p style="color:blue ; font-size:13px"><b>Book</b></p></td>
+	<td><p style="color:blue; font-size:13px"><b>Author</b></p></td>
+	<td><p style="color:blue; font-size:13px"><b>Edition</b></p></td>
+	<td><p style="color:blue; font-size:13px"><b>Publisher</b></p></td>
+	<td><p style="color:blue; font-size:13px"><b>Description</b></p></td>
+	<td><p style="color:blue; font-size:13px"><b>Book</b></p></td>
+	<td><p style="color:red; font-size:13px"><b>Issue</b></p></td>
+</tr>
+{{for i in results:}}
+<tr>
+	<td><p style="font-size:13px"><b>{{=i['name']}}</b></p></td>
+    <td><p style="font-size:13px"><b>{{=i['author']}}</b></p></td>
+    <td><p style="font-size:13px"><b>{{=i['edition']}}</b></p></td>
+    <td><p style="font-size:13px"><b>{{=i['publisher']}}</b></p></td>
+    <td><p style="font-size:13px"><b>{{=i['subject']}}</b></p></td>
+	<td><p style="font-size:13px"><b><a href="readbook.html/{{=i['id']}}">click here</a></b></p></td>
+	<td><p style="font-size:13px"><b><a href="{{=URL('default','issue',args=i['id'])}}">Issue this book</a></b></p></td>
+</tr>
+{{pass}}
+</table>

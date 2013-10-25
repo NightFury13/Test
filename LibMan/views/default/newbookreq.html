@@ -1,0 +1,41 @@
+{{extend 'layout.html'}}
+<div style="background-color:lightgrey">
+ <p style="text-align:center;font-family:Times;font-size:40px"><b><u>Book Request</u></b></p>
+</div>
+{{if auth.user.usertype!='Librarian':}}
+<div style="text-align:right"><b>To place a <a href="#post">New Request</a></b></div>
+{{pass}}
+{{if auth.user.usertype=='Librarian':}}
+<div style="text-align:right"><b>To respond to a <a href="#req">Request</a></b></div>
+{{pass}}
+<p style="color:purple;font-size:25px"><b>Requests Placed :</b></p>
+<br>
+<blockquote>
+<table>
+<tr>
+	<td><p style="color:blue"><b>Book</b></p></td>
+	<td><p style="color:blue"><b>Author</b></p></td>
+	<td><p style="color:blue"><b>Edition</b></p></td>
+	<td><p style="color:blue"><b>Publisher</b></p></td>
+	<td><p style="color:red"><b>Status</b></p></td>
+</tr>
+{{for i in req:}}
+<tr>
+	<td><p><b>{{=i['newbookreq']['book']}}</b></p></td>
+    <td><p><b>{{=i['newbookreq']['author']}}</b></p></td>
+    <td><p><b>{{=i['newbookreq']['edition']}}</b></p></td>
+    <td><p><b>{{=i['newbookreq']['publisher']}}</b></p></td>
+    <td><p style="color:red"><b>{{=i['bookresponse']['status']}}</b></p></td>
+</tr>
+{{pass}}
+</blockquote>
+</table>
+<br>
+<br>
+{{if auth.user.usertype!='Librarian':}}
+<a name="post"><h3> Place a New Request :</h3></a>
+{{=forma}}
+{{else:}}
+<a name="req"><h3>To Respond to Requests :</h3></a>
+{{=formb}}
+{{pass}}

@@ -1,0 +1,49 @@
+{{left_sidebar_enabled,right_sidebar_enabled=False,('message' in globals())}}
+{{extend 'layout.html'}}
+
+<span><b><i>Hi!! Welcome to LibMan! The IIIT's online library!</i></b></span>
+
+<br>
+<br>
+<!--<video width="420" height="280" controls>
+<source src="tmovie.mp4" type="video/mp4">
+<source src="tmovie.ogg" type="video/ogg">
+<source src="tmovie.webm" type="video/webm">
+<object data="tmovie.mp4" width="420" height="280">
+<embed src="tmovie.swf" width="420" height="280">
+</object>			   
+</video>-->
+<blockquote>
+<!--<embed
+width="800" height="420"
+src="http://youtu.be/DE1iJJe1Tvk"
+type="application/x-shockwave-flash">
+</embed>-->
+<iframe width="800" height="420" src="http://www.youtube.com/embed/3bEk6NlU464" frameborder="0" allowfullscreen></iframe>
+</blockquote>
+<br>
+<br>
+To know the current <a href="http://127.0.0.1:8000/LibMan/default/numboo">Status of Books</a>
+<br>
+<br>
+Having Problems? Go to <a href="http://127.0.0.1:8000/LibMan/default/faq">FAQ's</a>
+
+{{block right_sidebar}}
+
+<fieldset>
+<div style='background-color:lightgrey'>
+<div style='background-color:grey'>
+<center>
+<h2>Login</h2>
+</center>
+</div>
+{{=form}}
+<a href="http://127.0.0.1:8000/LibMan/default/user/request_reset_password?_next=/LibMan/default/index"><h6>{{=T("Forgot Password?")}}</h6></a>
+<a href="http://127.0.0.1:8000/LibMan/default/user/register?_next=/LibMan/default/index"><h6>{{=T("Not a member yet? Join Here!")}}</h6></a>
+</div>
+<br>
+<br>
+<h5>No. of Visits : {{=counter}}</h5>
+</fieldset>
+</form>
+{{end}}

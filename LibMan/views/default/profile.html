@@ -1,0 +1,82 @@
+{{extend 'layout.html'}}
+<blockquote>
+<h3>{{=name}}</h3>
+</blockquote>
+<blockquote>
+<img height="200px" width="200px" style="float:left"src="{{=URL('download',args=auth.user.photo)}}"></img>
+</blockquote>
+<pre><b> Name : {{=name}}
+ Age : {{=age}}
+ Gender : {{=sex}}
+ Designation : {{=usertype}}
+ Email : {{=email}}
+ Phone No. : {{=contact}}</b>
+ </pre>
+<br>
+{{if usertype!='Librarian':}}
+<!--<pre>
+<b><i>
+ Place request for a<a href="http://127.0.0.1:8000/LibMan/default/newbookreq"> new book </a>
+ <a href="{{=URL('default','search')}}">Search for a book</a>
+</i></b>
+{{pass}}-->
+</pre>
+<br>
+<br>
+<br>
+{{if issuedbooks:}}
+<h4>Issued Books :</h4>
+<pre>
+<table>
+<tr>
+	<td><p style="color:blue"><b>Name</b></p></td>
+	<td><p style="color:blue"><b>Author</b></p></td>
+	<td><p style="color:blue"><b>Date & Time of Issue</b></p></td>
+	<td><p style="color:red; text-align:center"><b>Action</b></p></td>
+</tr>
+{{for i in issuedbooks:}}
+<tr>
+	<td><p><b>{{=i[0]['name']}}</b></p></td>
+	<td><p><b>{{=i[0]['author']}}</b></p></td>
+	<td><p><b>{{=i[1]}}</b></p></td>
+	<td><p style="color:red"><b><a href="{{=URL('default','cancel',args=i[0]['id'])}}">Cancel Request</a></p></td>
+</tr>
+{{pass}}
+</table>
+</pre>
+{{pass}}
+{{pass}}
+<br>
+<br>
+<h4>{{=bc}}</h4>
+{{pass}}
+{{if usertype=='Librarian':}}
+<h4>Deadline Approching for</h4>
+<pre>
+<table>
+<tr>
+	<td><p style="color:blue"><b>Issued By: </b></p></td>
+	<td><p style="color:blue"><b>Book Issued: </b></p></td>
+	<td><p style="color:blue"><b>Issued Since: </b></p></td>
+	<td><p style="color:red"><b>Send Notification: </b></p></td>
+</tr>
+{{for i in issues:}}
+<tr>
+	<td><p><b>{{=i['auth_user']['first_name']}}</b></p></td>
+	<td><p><b>{{=i['books']['name']}}</b></p></td>
+	<td><p><b>{{=i['issue']['idate']}}</b></p></td>
+	<td><p style="text-align:center"><a href="{{=URL('default','notify/'+str(i['auth_user']['id'])+'/'+str(i['books']['id']))}}">Notify!</a></p></td>
+</tr>
+{{pass}}
+</table>
+</pre>
+<!--<h4>What would you like to do? </h4>
+<pre>
+<b><i>
+ <a href="{{=URL("default","newbooks")}}">Add a Book</a>
+ <a href="{{=URL("default","newbookreq")}}">See Book Requests</a>
+<a href="{{=URL("default","search")}}">Search for a book</a>
+<a href="http://127.0.0.1:8000/admin/default/design/LibMan">Go to Admin Interface</a>
+</i></b>
+</pre>-->
+{{pass}}

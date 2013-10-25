@@ -1,0 +1,102 @@
+{{extend 'layout.html'}}
+<body style="font-size:17px">
+<div style="background-color:lightgrey">
+		<p style="text-align:center;font-family:Times;font-size:40px"><b><u>FAQ'S</u></b></p>	
+		</div>
+		<br>
+		<br>
+{{if auth.user.usertype!='Librarian':}}
+		<p style="text-align:right"><b>Ask us a<a href="#post"> new question!</a></b></p>
+{{pass}}
+<br>
+<br>
+	<p style="color:purple;font-size:25px"><b>Some Sample Questions :</b></p>
+	<br>
+		<script>
+
+	function toggleElement(id)
+	{
+		if(document.getElementById(id).style.display == 'none')
+		{
+			document.getElementById(id).style.display = '';
+		}
+		else
+		{
+			document.getElementById(id).style.display = 'none';
+		}
+	}
+	</script>
+<p>
+	<a name ="x" href="javascript:toggleElement('a1')" style="text-decoration:none">I am a new user, How to register ?</a>
+</p>
+<blockquote>
+<div id="a1" style="display:none">
+	Hey! Please visit the link on the bottom right of the page to register on our database. :)
+</div>
+</blockquote>
+<p>
+	<a href="javascript:toggleElement('a2')" style="text-decoration:none">I forgot my password !!! Please Help!!!?</a>
+</p>
+<blockquote>
+<div id="a2" style="display:none">
+	Hey! Please go to the <b>'Forgot my password'</b> link given on the homepage. :)
+</div>
+</blockquote>
+<p>
+	<a href="javascript:toggleElement('a3')" style="text-decoration:none">How to book a reservation??</a>
+</p>
+<blockquote>
+<div id="a3" style="display:none">
+	You firstly need to be registered on our database to reserve a book in our library.If you haven't registered yet please 
+	<a href "#x" style="text-decoration:none">Register</a>. Once you are done with that you can visit your profile page and book a reservation there.
+</div>
+</blockquote>
+<p>
+<a href="javascript:toggleElement('a4')" style="text-decoration:none">How to cancel a reservation ?</a>
+</p>
+<blockquote>
+<div id="a4" style="display:none">
+	Visit your profile page by logging in from the link given on the page.There you will find the link to cancel your reservation.
+</div>
+</blockquote>
+<p>
+	<a href="javascript:toggleElement('a5')" style="text-decoration:none">How to search for a book?</a>
+</p>
+<blockquote>
+<div id="a5" style="display:none">
+	First log in to your profile and then search for the book.
+</div>
+</blockquote>
+<p>
+	<a href="javascript:toggleElement('a6')" style="text-decoration:none">Who developed this app???</a>
+</p>
+<blockquote>
+	<i><div id="a6" style="display:none">
+			Mohit Jain and Anubhav Srivastava :) .The developers of this app are Undergraduate First Year Computer Science students of IIIT Hyderabad .Feel free to contact us with queries and usefull suggestions. We have provided our facebook pages on the bottom-right corner of the page :) . We also accept <b>generous</b> donations ;)
+</div></i>
+</blockquote>
+<br/>
+
+<p style="color:purple;font-size:25px"><b>Questions you asked :</b></p>
+<br>
+{{for i in records:}}
+<h4>
+{{=i['questions']['question']}}
+</h4>
+<h5>
+<blockquote>
+{{=i['answers']['answer']}}
+</blockquote>
+</h5>
+<br>
+<br>
+{{pass}}
+{{if auth.user.usertype!='Librarian':}}
+<a name="post"><h3> If these didnt help, Ask us! </h3></a>
+{{=forma}}
+{{pass}}
+{{if auth.user.usertype=='Librarian':}}
+<p style="color:cyan;font-size:30px"><b> Answer a Question :</b></p>
+<br>
+{{=formb}}
+{{pass}}

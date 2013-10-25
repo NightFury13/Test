@@ -1,0 +1,1226 @@
+(dp1
+S'output'
+p2
+S"<type 'exceptions.IOError'> [Errno socket error] [Errno 1] _ssl.c:504: error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol"
+p3
+sS'layer'
+p4
+S'/home/mohit/web2py/applications/LibMan/controllers/default.py'
+p5
+sS'code'
+p6
+S'#-*- coding: utf-8 -*-\n# this file is released under public domain and you can use without limitations\n\n#########################################################################\n## This is a samples controller\n## - index is the default action of any application\n## - user is required for authentication and authorization\n## - download is for downloading files uploaded in the db (does streaming)\n## - call exposes all registered services (none by default)\n#########################################################################\n\n\n\n@auth.requires_login()\ndef profile():\n\tname=db(auth.user_id==db.auth_user.id).select(db.auth_user.first_name,db.auth_user.last_name)\n\tname=name[0][\'first_name\']+\' \'+name[0][\'last_name\']\n\tage=db(auth.user_id==db.auth_user.id).select(db.auth_user.age)\n\tage=age[0][\'age\']\n\tsex=db(auth.user_id==db.auth_user.id).select(db.auth_user.sex)\n\tsex=sex[0][\'sex\']\t\n\temail=db(auth.user_id==db.auth_user.id).select(db.auth_user.email)\n\temail=email[0][\'email\']\n\tcontact=db(auth.user_id==db.auth_user.id).select(db.auth_user.phone)\n\tcontact=contact[0][\'phone\']\n\tusertype=db(auth.user_id==db.auth_user.id).select(db.auth_user.usertype)\n\tusertype=usertype[0][\'usertype\']\n\tissues=[]\n\tif (usertype==\'Librarian\'):\n\t\ta=request.now\n\t\tissues=db((db.issue.idate<=a) & (db.issue.userid==db.auth_user.id) & (db.issue.bookid==db.books.id)).select(db.auth_user.first_name,db.auth_user.id,db.books.id,db.auth_user.email,db.issue.idate,db.books.name)\t\t\n\tbookid=db(db.issue.userid==auth.user_id).select(db.issue.bookid,db.issue.idate)\n\tbooks=db(db.books.id>0).select()\n\tissuedbooks=[]\n\tfor i in bookid:\n\t\tissuedbooks.append((books[i[\'bookid\']-1],i[\'idate\']))\n\tbc=\'Thankyou\'\n\taddbook=SQLFORM(db.books)\n\tif usertype==\'Librarian\':\n\t\tbc=\'\'\n\treturn locals()\n\ndef notify():\n\tuserid=int(request.args(0))\n\tusername=db(db.auth_user.id==userid).select(db.auth_user.first_name)\n\tusername=username[0][\'first_name\']\n\tbookid=int(request.args(1))\n\tbookname=db(db.books.id==bookid).select(db.books.name)\n\tbookname=bookname[0][\'name\']\n\temail=db(db.auth_user.id==userid).select(db.auth_user.email)\n\temail=email[0][\'email\']\n\tmail.send(email,subject=\'[IIIT-H: Library] Reminder!\',message=\'Dear \'+username+\', Your book, \'+bookname+\' is due for submission.\')\n\treturn dict(message="Email sent succesfully!")\n\ndef authtalk():\n\tform=SQLFORM(db.authtalk)\n\tif form.accepts(request.vars):\n\t\tmess=db(db.authtalk.id>0).select()\n\t\tmess=mess[-1]\n\t\tmail.send(\'mohit.jain@students.iiit.ac.in\',subject=mess[\'subject\'],message=mess[\'conte\'])\n\t\treturn dict(form=form,message="Email sent succesfully!")\n\telse:\n\t \treturn dict(form=form,message="Please provide your name and email address in the content of the mail.")\n\ndef usertalk():\n\tform=SQLFORM(db.usertalk)\n\tif form.accepts(request.vars):\n\t\tmess=db(db.usertalk.id>0).select()\n\t\tmess=mess[-1]\n\t\tmail.send(mess[\'reciever\'],subject=mess[\'subject\'],message=mess[\'conte\'])\n\t\treturn dict(form=form,message="Email sent succesfully!")\n\telse:\n\t\treturn dict(form=form,message="Please enter only one user at a time.")\n\n@auth.requires_login()\t\ndef newbookreq():\n\treq=db(db.newbookreq.id==db.bookresponse.book).select(db.newbookreq.book,db.newbookreq.author,db.newbookreq.edition,db.newbookreq.publisher,db.bookresponse.status)\n\tforma=SQLFORM(db.newbookreq)\n\tif forma.accepts(request.vars):\n\t\tresponse.flash = T(\'Request Noted\')\n\tformb=SQLFORM(db.bookresponse)\n\tif formb.accepts(request.vars):\n\t\tresponse.flash = T(\'Status Updated\')\n\treturn locals()\n\t \ndef numboo():\n\trecords=db().select(db.books.copies)\n\tsume=0\n\tfor i in range(len(records)):\n\t\tsume+=records[i][\'copies\']\n\trec=db().select(db.books.issued)\n\tsumq=0\n\tfor j in range(len(rec)):\n\t\tsumq+=rec[i][\'issued\']\n\treturn dict(sume=sume,sumq=sumq,sump=sume-sumq)\n\ndef newbooks():\n\tforma=SQLFORM(db.books)\n\tif forma.accepts(request.vars,session):\n\t\tresponse.flash = T(\'Record Inserted\')\n\treturn dict(forma=forma)\n\n@auth.requires_login()\t\ndef faq():\n\trecords=db(db.questions.id==db.answers.question).select(db.questions.question,db.answers.answer)\n\tforma=SQLFORM(db.questions)\n\tif forma.accepts(request.vars):\n\t\tresponse.flash = T(\'Question Posted\')\n\tformb=SQLFORM(db.answers)\n\tif formb.accepts(request.vars):\n\t\tresponse.flash = T(\'Answer Posted\')\n\treturn dict(forma=forma,formb=formb,records=records)\n\ndef signup():\n\tform=SQLFORM(auth_user)\n\tif form.accepts(request.vars):\n\t\tresponse.flash = T(\'Record Inserted\')\n\treturn dict(form=form)\n\ndef rate():\n\tform=SQLFORM(db.rate)\n\tif form.accepts(request.vars):\n\t\tresponse.flash = T(\'Book Rated!\')\n\treturn dict(form=form)\n\ndef issue():\n\tbookid=request.args(0)\n\tstate=db((db.issue.userid==auth.user_id) & (db.issue.bookid==bookid)).select()\n\tif ((state)):\n\t\treturn dict(message=\'You have already made a request for this book!\')\n\telse:\n\t\tdb.issue.insert(userid=auth.user_id,bookid=bookid,idate=request.now)\n\t\treturn dict(message=\'Your request for this book has been taken.\')\n\ndef cancel():\n\tbookid=request.args(0)\n\tdb((db.issue.userid==auth.user_id) & (db.issue.bookid==bookid)).delete()\n\treturn dict(message=\'Your request has been succesfully taken back.\')\n\ndef readbook():\n\ta=request.args(0)\n\tbo=db(db.books.id==a).select()\n\tbo=bo[0]\n\trates=db(db.rate.bookid==bo[\'id\']).select(db.rate.rating)\n\tj=0\n\tfor i in rates:\n\t\tj=j+i[\'rating\']\n\tif (len(rates)):\n\t\trating=j/len(rates)\n\telse:\n\t\trating=3\n\treturn dict(bo=bo,rating=rating)\n\n@auth.requires_login()\t\ndef search():\n\tkeywords=str(request.get_vars[\'keywords\'])\n\tresults=[]\n\tif keywords:\n\t\tkeywords = [x for x in keywords.split() if len(x)>3]\n\tif keywords:\n\t\tquery1 = reduce(lambda a,b:a|b,[db.books.name.like(\'%\'+k+\'%\')for k in keywords])\n\t\tquery2 = reduce(lambda a,b:a|b,[db.books.author.like(\'%\'+k+\'%\')for k in keywords])\n\t\tresults = db(query1|query2).select()\n\telse:\n\t\tresults=\'\'\n\treturn dict(results=results)\n\t\ndef complete():\n\tif not request.vars.vab:return \'\'\n\tpattern=request.vars.vab.capitalize()+\'%\'\n\tselected=[row.name for row in db(db.books.name.like(pattern)).select()]\n\treturn \'\'.join([DIV(k,_onclick="$(\'#vab\').attr(\'value\',\'%s\')"%k,_onmouseover="this.style.backgroundColor=\'yellow\'",_onmouseout="this.style.backgroundColor=\'white\'").xml() for k in selected])\n\ndef index():\n\tif not session.counter: \n\t\tsession.counter=1\n\telse: \n\t\tsession.counter+=1\n\treturn dict(message=T(\'Hello World\'),counter=session.counter,form=auth())\n\ndef user():\n    """\n    exposes:\n    http://..../[app]/default/user/login\n    http://..../[app]/default/user/logout\n    http://..../[app]/default/user/register\n    http://..../[app]/default/user/profile\n    http://..../[app]/default/user/retrieve_password\n    http://..../[app]/default/user/change_password\n    use @auth.requires_login()\n        @auth.requires_membership(\'group name\')\n        @auth.requires_permission(\'read\',\'table name\',record_id)\n    to decorate functions that need access control\n    """\n    return dict(form=auth())\n\n\ndef download():\n    """\n    allows downloading of uploaded files\n    http://..../[app]/default/download/[filename]\n    """\n    return response.download(request, db)\n\n\ndef call():\n    """\n    exposes services. for example:\n    http://..../[app]/default/call/jsonrpc\n    decorate with @services.jsonrpc the functions to expose\n    supports xml, json, xmlrpc, jsonrpc, amfrpc, rss, csv\n    """\n    return service()\n\n\n@auth.requires_signature()\ndef data():\n    """\n    http://..../[app]/default/data/tables\n    http://..../[app]/default/data/create/[table]\n    http://..../[app]/default/data/read/[table]/[id]\n    http://..../[app]/default/data/update/[table]/[id]\n    http://..../[app]/default/data/delete/[table]/[id]\n    http://..../[app]/default/data/select/[table]\n    http://..../[app]/default/data/search/[table]\n    but URLs must be signed, i.e. linked with\n      A(\'table\',_href=URL(\'data/tables\',user_signature=True))\n    or with the signed load operator\n      LOAD(\'default\',\'data.load\',args=\'tables\',ajax=True,user_signature=True)\n    """\n    return dict(form=crud())\n\nresponse._vars=response._caller(index)\n'
+p7
+sS'snapshot'
+p8
+(dp9
+S'exception'
+p10
+(dp11
+S'__getslice__'
+p12
+S"<method-wrapper '__getslice__' of exceptions.IOError object>"
+p13
+sS'__str__'
+p14
+S"<method-wrapper '__str__' of exceptions.IOError object>"
+p15
+sS'__reduce__'
+p16
+S'<built-in method __reduce__ of exceptions.IOError object>'
+p17
+sS'__dict__'
+p18
+S'{}'
+p19
+sS'__sizeof__'
+p20
+S'<built-in method __sizeof__ of exceptions.IOError object>'
+p21
+sS'__init__'
+p22
+S"<method-wrapper '__init__' of exceptions.IOError object>"
+p23
+sS'__setattr__'
+p24
+S"<method-wrapper '__setattr__' of exceptions.IOError object>"
+p25
+sS'__reduce_ex__'
+p26
+S'<built-in method __reduce_ex__ of exceptions.IOError object>'
+p27
+sS'__new__'
+p28
+S'<built-in method __new__ of type object>'
+p29
+sS'errno'
+p30
+S"'socket error'"
+p31
+sS'__format__'
+p32
+S'<built-in method __format__ of exceptions.IOError object>'
+p33
+sS'__class__'
+p34
+S"<type 'exceptions.IOError'>"
+p35
+sS'filename'
+p36
+S'None'
+p37
+sS'__doc__'
+p38
+S"'I/O operation failed.'"
+p39
+sS'__getitem__'
+p40
+S"<method-wrapper '__getitem__' of exceptions.IOError object>"
+p41
+sS'__setstate__'
+p42
+S'<built-in method __setstate__ of exceptions.IOError object>'
+p43
+sS'__getattribute__'
+p44
+S"<method-wrapper '__getattribute__' of exceptions.IOError object>"
+p45
+sS'args'
+p46
+S"('socket error', SSLError(1, '_ssl.c:504: error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol'))"
+p47
+sS'__subclasshook__'
+p48
+S'<built-in method __subclasshook__ of type object>'
+p49
+sS'__unicode__'
+p50
+S'<built-in method __unicode__ of exceptions.IOError object>'
+p51
+sS'strerror'
+p52
+S"SSLError(1, '_ssl.c:504: error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol')"
+p53
+sS'__delattr__'
+p54
+S"<method-wrapper '__delattr__' of exceptions.IOError object>"
+p55
+sS'__repr__'
+p56
+S"<method-wrapper '__repr__' of exceptions.IOError object>"
+p57
+sS'__hash__'
+p58
+S"<method-wrapper '__hash__' of exceptions.IOError object>"
+p59
+ssS'evalue'
+p60
+S'[Errno socket error] [Errno 1] _ssl.c:504: error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol'
+p61
+sS'request'
+p62
+cgluon.html
+XML_unpickle
+p63
+(S'sE[\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top">ajax</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">application</td><td valign="top">:</td><td><div>LibMan</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">args</td><td valign="top">:</td><td><div><table><tr><td><div>login</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">body</td><td valign="top">:</td><td><div>&lt;cStringIO.StringO object at 0xac50740&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cid</td><td valign="top">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">client</td><td valign="top">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">controller</td><td valign="top">:</td><td><div>default</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cookies</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">session_id_admin</td><td valign="top">:</td><td><div>127.0.0.1-0c786c92-a585-446d-a999-7290cd963462<table><tr><td style="font-weight:bold;vertical-align:top">comment</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">domain</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">expires</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">httponly</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">max-age</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">path</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">secure</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">version</td><td valign="top">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_id_libman</td><td valign="top">:</td><td><div>127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e<table><tr><td style="font-weight:bold;vertical-align:top">comment</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">domain</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">expires</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">httponly</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">max-age</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">path</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">secure</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">version</td><td valign="top">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_id_swaraa</td><td valign="top">:</td><td><div>127.0.0.1-1f7bf513-4537-49ab-a90d-c791124862de<table><tr><td style="font-weight:bold;vertical-align:top">comment</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">domain</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">expires</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">httponly</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">max-age</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">path</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">secure</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">version</td><td valign="top">:</td><td><div></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_id_welcome</td><td valign="top">:</td><td><div>127.0.0.1-528ed318-8093-471f-9cd2-d2efb4b044fa<table><tr><td style="font-weight:bold;vertical-align:top">comment</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">domain</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">expires</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">httponly</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">max-age</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">path</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">secure</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">version</td><td valign="top">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">env</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">app_folders</td><td valign="top">:</td><td><div>set([&#x27;/home/mohit/web2py/applications/welcome/&#x27;, &#x27;/home/mohit/web2py/applications/swaraa/&#x27;, &#x27;/home/mohit/web2py/applications/Median/&#x27;, &#x27;/home/mohit/web2py/applications/LibMan/&#x27;, &#x27;/home/mohit/web2py/applications/swaraa2/&#x27;, &#x27;/home/mohit/web2py/applications/admin/&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">applications_parent</td><td valign="top">:</td><td><div>/home/mohit/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cmd_args</td><td valign="top">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cmd_options</td><td valign="top">:</td><td><div>&lt;Values at 0xa7894cc: {&#x27;verbose&#x27;: False, &#x27;ip&#x27;: &#x27;127.0.0.1&#x27;, &#x27;with_scheduler&#x27;: False, &#x27;ips&#x27;: [&#x27;127.0.1.1&#x27;], &#x27;shutdown_timeout&#x27;: 5, &#x27;taskbar&#x27;: False, &#x27;with_coverage&#x27;: False, &#x27;port&#x27;: 8000, &#x27;maxthreads&#x27;: None, &#x27;softcron&#x27;: False, &#x27;server_name&#x27;: &#x27;mohit-K53SD&#x27;, &#x27;bpython&#x27;: False, &#x27;nogui&#x27;: False, &#x27;pid_filename&#x27;: &#x27;httpserver.pid&#x27;, &#x27;extcron&#x27;: False, &#x27;runcron&#x27;: False, &#x27;run_system_tests&#x27;: False, &#x27;test&#x27;: None, &#x27;folder&#x27;: &#x27;/home/mohit/web2py&#x27;, &#x27;config&#x27;: &#x27;&#x27;, &#x27;import_models&#x27;: False, &#x27;winservice&#x27;: &#x27;&#x27;, &#x27;shell&#x27;: None, &#x27;run&#x27;: &#x27;&#x27;, &#x27;log_filename&#x27;: &#x27;httpserver.log&#x27;, &#x27;debuglevel&#x27;: 30, &#x27;args&#x27;: [&#x27;&#x27;], &#x27;socket_timeout&#x27;: 5, &#x27;ssl_ca_certificate&#x27;: None, &#x27;scheduler&#x27;: None, &#x27;profiler_filename&#x27;: None, &#x27;ssl_private_key&#x27;: &#x27;&#x27;, &#x27;scheduler_groups&#x27;: None, &#x27;password&#x27;: &#x27;&lt;ask&gt;&#x27;, &#x27;request_queue_size&#x27;: 5, &#x27;ssl_certificate&#x27;: &#x27;&#x27;, &#x27;cronjob&#x27;: False, &#x27;numthreads&#x27;: None, &#x27;quiet&#x27;: False, &#x27;interfaces&#x27;: None, &#x27;minthreads&#x27;: None, &#x27;timeout&#x27;: 10, &#x27;plain&#x27;: False, &#x27;nobanner&#x27;: False}&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">db_sessions</td><td valign="top">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">debugging</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">gluon_parent</td><td valign="top">:</td><td><div>/home/mohit/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_accept</td><td valign="top">:</td><td><div>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_accept_encoding</td><td valign="top">:</td><td><div>gzip, deflate</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_accept_language</td><td valign="top">:</td><td><div>en-US,en;q=0.5</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_connection</td><td valign="top">:</td><td><div>keep-alive</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_cookie</td><td valign="top">:</td><td><div>session_id_swaraa=127.0.0.1-1f7bf513-4537-49ab-a90d-c791124862de; session_id_admin=127.0.0.1-0c786c92-a585-446d-a999-7290cd963462; session_id_welcome=127.0.0.1-528ed318-8093-471f-9cd2-d2efb4b044fa; session_id_libman=127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_host</td><td valign="top">:</td><td><div>127.0.0.1:8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_referer</td><td valign="top">:</td><td><div>http://127.0.0.1:8000/admin/default/site</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">http_user_agent</td><td valign="top">:</td><td><div>Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_jython</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_pypy</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">local_hosts</td><td valign="top">:</td><td><div><table><tr><td><div>::1</div></td></tr><tr><td><div>127.0.1.1</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>127.0.0.1</div></td></tr><tr><td><div>mohit-K53SD</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">path_info</td><td valign="top">:</td><td><div>/LibMan/default/index/login</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">query_string</td><td valign="top">:</td><td><div>ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">remote_addr</td><td valign="top">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">remote_port</td><td valign="top">:</td><td><div>38669</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">request_method</td><td valign="top">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">request_uri</td><td valign="top">:</td><td><div>/LibMan/default/index/login?ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">script_name</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">server_name</td><td valign="top">:</td><td><div>mohit-K53SD</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">server_port</td><td valign="top">:</td><td><div>8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">server_protocol</td><td valign="top">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">server_software</td><td valign="top">:</td><td><div>Rocket 1.2.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">web2py_path</td><td valign="top">:</td><td><div>/home/mohit/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">web2py_version</td><td valign="top">:</td><td><div>2.5.1-stable+timestamp.2013.06.06.15.39.19</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_errors</td><td valign="top">:</td><td><div>&lt;open file &#x27;&lt;stderr&gt;&#x27;, mode &#x27;w&#x27; at 0xb73200d0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_file_wrapper</td><td valign="top">:</td><td><div>&lt;class wsgiref.util.FileWrapper at 0xa74108c&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_input</td><td valign="top">:</td><td><div>&lt;socket._fileobject object at 0xad30e02c&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_multiprocess</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_multithread</td><td valign="top">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_run_once</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_url_scheme</td><td valign="top">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi_version</td><td valign="top">:</td><td><div><table><tr><td><div>1</div></td></tr><tr><td><div>0</div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">extension</td><td valign="top">:</td><td><div>html</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">folder</td><td valign="top">:</td><td><div>/home/mohit/web2py/applications/LibMan/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">function</td><td valign="top">:</td><td><div>index</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">get_vars</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">ticket</td><td valign="top">:</td><td><div>ST-31032-i3rWmYnomdG1qvGfX1Si-cas</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">global_settings</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">app_folders</td><td valign="top">:</td><td><div>set([&#x27;/home/mohit/web2py/applications/welcome/&#x27;, &#x27;/home/mohit/web2py/applications/swaraa/&#x27;, &#x27;/home/mohit/web2py/applications/Median/&#x27;, &#x27;/home/mohit/web2py/applications/LibMan/&#x27;, &#x27;/home/mohit/web2py/applications/swaraa2/&#x27;, &#x27;/home/mohit/web2py/applications/admin/&#x27;])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">applications_parent</td><td valign="top">:</td><td><div>/home/mohit/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cmd_args</td><td valign="top">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cmd_options</td><td valign="top">:</td><td><div>&lt;Values at 0xa7894cc: {&#x27;verbose&#x27;: False, &#x27;ip&#x27;: &#x27;127.0.0.1&#x27;, &#x27;with_scheduler&#x27;: False, &#x27;ips&#x27;: [&#x27;127.0.1.1&#x27;], &#x27;shutdown_timeout&#x27;: 5, &#x27;taskbar&#x27;: False, &#x27;with_coverage&#x27;: False, &#x27;port&#x27;: 8000, &#x27;maxthreads&#x27;: None, &#x27;softcron&#x27;: False, &#x27;server_name&#x27;: &#x27;mohit-K53SD&#x27;, &#x27;bpython&#x27;: False, &#x27;nogui&#x27;: False, &#x27;pid_filename&#x27;: &#x27;httpserver.pid&#x27;, &#x27;extcron&#x27;: False, &#x27;runcron&#x27;: False, &#x27;run_system_tests&#x27;: False, &#x27;test&#x27;: None, &#x27;folder&#x27;: &#x27;/home/mohit/web2py&#x27;, &#x27;config&#x27;: &#x27;&#x27;, &#x27;import_models&#x27;: False, &#x27;winservice&#x27;: &#x27;&#x27;, &#x27;shell&#x27;: None, &#x27;run&#x27;: &#x27;&#x27;, &#x27;log_filename&#x27;: &#x27;httpserver.log&#x27;, &#x27;debuglevel&#x27;: 30, &#x27;args&#x27;: [&#x27;&#x27;], &#x27;socket_timeout&#x27;: 5, &#x27;ssl_ca_certificate&#x27;: None, &#x27;scheduler&#x27;: None, &#x27;profiler_filename&#x27;: None, &#x27;ssl_private_key&#x27;: &#x27;&#x27;, &#x27;scheduler_groups&#x27;: None, &#x27;password&#x27;: &#x27;&lt;ask&gt;&#x27;, &#x27;request_queue_size&#x27;: 5, &#x27;ssl_certificate&#x27;: &#x27;&#x27;, &#x27;cronjob&#x27;: False, &#x27;numthreads&#x27;: None, &#x27;quiet&#x27;: False, &#x27;interfaces&#x27;: None, &#x27;minthreads&#x27;: None, &#x27;timeout&#x27;: 10, &#x27;plain&#x27;: False, &#x27;nobanner&#x27;: False}&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">db_sessions</td><td valign="top">:</td><td><div>set([])</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">debugging</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">gluon_parent</td><td valign="top">:</td><td><div>/home/mohit/web2py</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_jython</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_pypy</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">local_hosts</td><td valign="top">:</td><td><div><table><tr><td><div>::1</div></td></tr><tr><td><div>127.0.1.1</div></td></tr><tr><td><div>::ffff:127.0.0.1</div></td></tr><tr><td><div>127.0.0.1</div></td></tr><tr><td><div>mohit-K53SD</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">web2py_version</td><td valign="top">:</td><td><div>2.5.1-stable+timestamp.2013.06.06.15.39.19</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_https</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_local</td><td valign="top">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">is_restful</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">now</td><td valign="top">:</td><td><div>datetime.datetime(2013, 10, 24, 2, 21, 9, 103340)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">post_vars</td><td valign="top">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">raw_args</td><td valign="top">:</td><td><div>login</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">raw_extension</td><td valign="top">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">url</td><td valign="top">:</td><td><div>/LibMan/default/index/login</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">utcnow</td><td valign="top">:</td><td><div>datetime.datetime(2013, 10, 23, 20, 51, 9, 103367)</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">uuid</td><td valign="top">:</td><td><div>LibMan/127.0.0.1.2013-10-24.02-21-09.34dc97b7-2ca1-495f-adb1-8c0f893d5585</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">vars</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">ticket</td><td valign="top">:</td><td><div>ST-31032-i3rWmYnomdG1qvGfX1Si-cas</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">environ</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">HTTP_ACCEPT</td><td valign="top">:</td><td><div>text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_ACCEPT_ENCODING</td><td valign="top">:</td><td><div>gzip, deflate</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_ACCEPT_LANGUAGE</td><td valign="top">:</td><td><div>en-US,en;q=0.5</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_CONNECTION</td><td valign="top">:</td><td><div>keep-alive</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_COOKIE</td><td valign="top">:</td><td><div>session_id_swaraa=127.0.0.1-1f7bf513-4537-49ab-a90d-c791124862de; session_id_admin=127.0.0.1-0c786c92-a585-446d-a999-7290cd963462; session_id_welcome=127.0.0.1-528ed318-8093-471f-9cd2-d2efb4b044fa; session_id_libman=127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_HOST</td><td valign="top">:</td><td><div>127.0.0.1:8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_REFERER</td><td valign="top">:</td><td><div>http://127.0.0.1:8000/admin/default/site</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">HTTP_USER_AGENT</td><td valign="top">:</td><td><div>Mozilla/5.0 (X11; Ubuntu; Linux i686; rv:25.0) Gecko/20100101 Firefox/25.0</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">PATH_INFO</td><td valign="top">:</td><td><div>/LibMan/default/index/login</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">QUERY_STRING</td><td valign="top">:</td><td><div>ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">REMOTE_ADDR</td><td valign="top">:</td><td><div>127.0.0.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">REMOTE_PORT</td><td valign="top">:</td><td><div>38669</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">REQUEST_METHOD</td><td valign="top">:</td><td><div>GET</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">REQUEST_URI</td><td valign="top">:</td><td><div>/LibMan/default/index/login?ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">SCRIPT_NAME</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">SERVER_NAME</td><td valign="top">:</td><td><div>mohit-K53SD</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">SERVER_PORT</td><td valign="top">:</td><td><div>8000</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">SERVER_PROTOCOL</td><td valign="top">:</td><td><div>HTTP/1.1</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">SERVER_SOFTWARE</td><td valign="top">:</td><td><div>Rocket 1.2.6</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.errors</td><td valign="top">:</td><td><div>&lt;open file &#x27;&lt;stderr&gt;&#x27;, mode &#x27;w&#x27; at 0xb73200d0&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.file_wrapper</td><td valign="top">:</td><td><div>&lt;class wsgiref.util.FileWrapper at 0xa74108c&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.input</td><td valign="top">:</td><td><div>&lt;cStringIO.StringO object at 0xac50740&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.multiprocess</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.multithread</td><td valign="top">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.run_once</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.url_scheme</td><td valign="top">:</td><td><div>http</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">wsgi.version</td><td valign="top">:</td><td><div>1</div></td></tr></table></div></td></tr></table></div></td></tr></table></div>'
+tRp64
+sS'frames'
+p65
+(lp66
+(dp67
+S'file'
+p68
+S'/home/mohit/web2py/gluon/restricted.py'
+p69
+sS'dump'
+p70
+(dp71
+S'environment'
+p72
+S"{'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, 'CAT': <class 'gluon.html.CAT'>, 'CENTER': <class 'gluon.html.CENTER'>, ...}"
+p73
+sS'ccode'
+p74
+S'<code object <module> at 0xb3f61968, file "/home...ications/LibMan/controllers/default.py", line 14>'
+p75
+ssS'lnum'
+p76
+I212
+sS'lines'
+p77
+(dp78
+I207
+S'    try:'
+p79
+sI208
+S'        if isinstance(code, types.CodeType):'
+p80
+sI209
+S'            ccode = code'
+p81
+sI210
+S'        else:'
+p82
+sI211
+S'            ccode = compile2(code, layer)'
+p83
+sI212
+S'        exec ccode in environment'
+p84
+sI213
+S'    except HTTP:'
+p85
+sI214
+S'        raise'
+p86
+sI215
+S'    except RestrictedError:'
+p87
+sI216
+S'        # do not encapsulate (obfuscate) the original RestrictedError'
+p88
+ssS'call'
+p89
+S"(code='#-*- coding: utf-8 -*-\\n# this file is released u...=crud())\\n\\nresponse._vars=response._caller(index)\\n', environment={'A': <class 'gluon.html.A'>, 'ANY_OF': <class 'gluon.validators.ANY_OF'>, 'Auth': <class 'gluon.tools.Auth'>, 'B': <class 'gluon.html.B'>, 'BEAUTIFY': <class 'gluon.html.BEAUTIFY'>, 'BODY': <class 'gluon.html.BODY'>, 'BR': <class 'gluon.html.BR'>, 'BUTTON': <class 'gluon.html.BUTTON'>, 'CAT': <class 'gluon.html.CAT'>, 'CENTER': <class 'gluon.html.CENTER'>, ...}, layer='/home/mohit/web2py/applications/LibMan/controllers/default.py')"
+p90
+sS'func'
+p91
+S'restricted'
+p92
+sa(dp93
+g68
+S'/home/mohit/web2py/applications/LibMan/controllers/default.py'
+p94
+sg70
+(dp95
+sg76
+I233
+sg77
+(dp96
+I224
+S'    http://..../[app]/default/data/select/[table]'
+p97
+sI225
+S'    http://..../[app]/default/data/search/[table]'
+p98
+sI226
+S'    but URLs must be signed, i.e. linked with'
+p99
+sI227
+S"      A('table',_href=URL('data/tables',user_signature=True))"
+p100
+sI228
+S'    or with the signed load operator'
+p101
+sI229
+S"      LOAD('default','data.load',args='tables',ajax=True,user_signature=True)"
+p102
+sI230
+S'    """'
+p103
+sI231
+S'    return dict(form=crud())'
+p104
+sI222
+S'    http://..../[app]/default/data/update/[table]/[id]'
+p105
+sI223
+S'    http://..../[app]/default/data/delete/[table]/[id]'
+p106
+ssg89
+S'()'
+p107
+sg91
+S'<module>'
+p108
+sa(dp109
+g68
+S'/home/mohit/web2py/gluon/globals.py'
+p110
+sg70
+(dp111
+S'self'
+p112
+S'undefined'
+p113
+sS'f'
+S'<function index>'
+p114
+ssg76
+I194
+sg77
+(dp115
+I192
+S"        self.delimiters = ('{{', '}}')"
+p116
+sI193
+S'        self._vars = None'
+p117
+sI194
+S'        self._caller = lambda f: f()'
+p118
+sI195
+S'        self._view_environment = None'
+p119
+sI196
+S'        self._custom_commit = None'
+p120
+sI197
+S'        self._custom_rollback = None'
+p121
+sI198
+S''
+sI189
+S'        self.menu = []             # used by the default view layout'
+p122
+sI190
+S'        self.files = []            # used by web2py_ajax.html'
+p123
+sI191
+S'        self.generic_patterns = []  # patterns to allow generic views'
+p124
+ssg89
+S'(f=<function index>)'
+p125
+sg91
+S'<lambda>'
+p126
+sa(dp127
+g68
+S'/home/mohit/web2py/applications/LibMan/controllers/default.py'
+p128
+sg70
+(dp129
+S'global session'
+p130
+S"<Storage {'counter': 3, '_session_hash': '77173b298acaf69413f7ecf2d130d77f'}>"
+p131
+sS'form'
+p132
+g113
+sS'global T'
+p133
+S'<gluon.languages.translator object>'
+p134
+sS'counter'
+p135
+g113
+sS'global auth'
+p136
+S'<gluon.tools.Auth object>'
+p137
+sS'message'
+p138
+g113
+sS'session.counter'
+p139
+S'3'
+sS'builtindict'
+p140
+S"<type 'dict'>"
+p141
+ssg76
+I179
+sg77
+(dp142
+I174
+S'def index():'
+p143
+sI175
+S'\tif not session.counter:'
+p144
+sI176
+S'\t\tsession.counter=1'
+p145
+sI177
+S'\telse:'
+p146
+sI178
+S'\t\tsession.counter+=1'
+p147
+sI179
+S"\treturn dict(message=T('Hello World'),counter=session.counter,form=auth())"
+p148
+sI180
+S''
+sI181
+S'def user():'
+p149
+sI182
+S'    """'
+p150
+sI183
+S'    exposes:'
+p151
+ssg89
+S'()'
+p152
+sg91
+S'index'
+p153
+sa(dp154
+g68
+S'/home/mohit/web2py/gluon/tools.py'
+p155
+sg70
+(dp156
+S'self'
+p157
+S'<gluon.tools.Auth object>'
+p158
+sS'args'
+p159
+S"['login']"
+p160
+sS'builtingetattr'
+p161
+S'<built-in function getattr>'
+p162
+ssg76
+I1286
+sg77
+(dp163
+I1281
+S"                       'change_password', 'profile', 'groups',"
+p164
+sI1282
+S"                       'impersonate', 'not_authorized'):"
+p165
+sI1283
+S"            if len(request.args) >= 2 and args[0] == 'impersonate':"
+p166
+sI1284
+S'                return getattr(self, args[0])(request.args[1])'
+p167
+sI1285
+S'            else:'
+p168
+sI1286
+S'                return getattr(self, args[0])()'
+p169
+sI1287
+S"        elif args[0] == 'cas' and not self.settings.cas_provider:"
+p170
+sI1288
+S"            if args(1) == self.settings.cas_actions['login']:"
+p171
+sI1289
+S'                return self.cas_login(version=2)'
+p172
+sI1290
+S"            elif args(1) == self.settings.cas_actions['validate']:"
+p173
+ssg89
+S'(self=<gluon.tools.Auth object>)'
+p174
+sg91
+S'__call__'
+p175
+sa(dp176
+g68
+S'/home/mohit/web2py/gluon/tools.py'
+p177
+sg70
+(dp178
+S'cas.login_url'
+p179
+S'<bound method CasAuth.login_url of <gluon.contrib.login_methods.cas_auth.CasAuth object>>'
+p180
+sS'cas'
+p181
+S'<gluon.contrib.login_methods.cas_auth.CasAuth object>'
+p182
+sS'self'
+p183
+S'<gluon.tools.Auth object>'
+p184
+sS'next'
+p185
+S"'/LibMan/default/user/login'"
+p186
+sS'client_side'
+p187
+g113
+sS'global redirect'
+p188
+S'<function redirect>'
+p189
+sS'self.settings'
+p190
+S"<Storage {'verify_email_onaccept': [], 'register...etrieve_username_next': '/LibMan/default/index'}>"
+p191
+sS'self.settings.client_side'
+p192
+S'True'
+p193
+ssg76
+I2176
+sg77
+(dp194
+I2176
+S'                redirect(cas.login_url(next),'
+p195
+sI2177
+S'                         client_side=self.settings.client_side)'
+p196
+sI2178
+S''
+sI2179
+S'        # process authenticated users'
+p197
+sI2180
+S'        if user:'
+p198
+sI2171
+S"            elif hasattr(cas, 'login_form'):"
+p199
+sI2172
+S'                return cas.login_form()'
+p200
+sI2173
+S'            else:'
+p201
+sI2174
+S'                # we need to pass through login again before going on'
+p202
+sI2175
+S"                next = self.url(self.settings.function, args='login')"
+p203
+ssg89
+S"(self=<gluon.tools.Auth object>, next='/LibMan/default/user/login', onvalidation=[], onaccept=[], log='User %(id)s Logged-in')"
+p204
+sg91
+S'login'
+p205
+sa(dp206
+g68
+S'/home/mohit/web2py/gluon/contrib/login_methods/cas_auth.py'
+p207
+sg70
+(dp208
+S'global current'
+p209
+S'<thread._local object>'
+p210
+sS'current.session.token'
+p211
+S'None'
+p212
+sS'self'
+p213
+S'<gluon.contrib.login_methods.cas_auth.CasAuth object>'
+p214
+sS'self._CAS_login'
+p215
+S'<bound method CasAuth._CAS_login of <gluon.contrib.login_methods.cas_auth.CasAuth object>>'
+p216
+sS'current.session'
+p217
+S"<Storage {'counter': 3, '_session_hash': '77173b298acaf69413f7ecf2d130d77f'}>"
+p218
+ssg76
+I70
+sg77
+(dp219
+I65
+S"            scheme = 'http'"
+p220
+sI66
+S"        self.cas_my_url = '%s://%s%s' % ("
+p221
+sI67
+S'            scheme, http_host, current.request.env.path_info)'
+p222
+sI68
+S''
+sI69
+S'    def login_url(self, next="/"):'
+p223
+sI70
+S'        current.session.token = self._CAS_login()'
+p224
+sI71
+S'        return next'
+p225
+sI72
+S''
+sI73
+S'    def logout_url(self, next="/"):'
+p226
+sI74
+S'        current.session.token = None'
+p227
+ssg89
+S"(self=<gluon.contrib.login_methods.cas_auth.CasAuth object>, next='/LibMan/default/user/login')"
+p228
+sg91
+S'login_url'
+p229
+sa(dp230
+g68
+S'/home/mohit/web2py/gluon/contrib/login_methods/cas_auth.py'
+p231
+sg70
+(dp232
+S'url'
+p233
+S"'https://login.iiit.ac.in/cas/validate?service=ht...ex/login&ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas'"
+p234
+sS'urllib.urlopen'
+p235
+S'<function urlopen>'
+p236
+sS'data'
+p237
+g113
+sS'urllib'
+p238
+S"<module 'urllib' from '/usr/lib/python2.7/urllib.pyc'>"
+p239
+sS').read'
+p240
+g113
+ssg76
+I102
+sg77
+(dp241
+I97
+S'                                        self.cas_my_url))'
+p242
+sI98
+S'        else:'
+p243
+sI99
+S'            url = "%s?service=%s&ticket=%s" % (self.cas_check_url,'
+p244
+sI100
+S'                                               self.cas_my_url,'
+p245
+sI101
+S'                                               self.ticket)'
+p246
+sI102
+S'            data = urllib.urlopen(url).read()'
+p247
+sI103
+S"            if data.startswith('yes') or data.startswith('no'):"
+p248
+sI104
+S"                data = data.split('\\n')"
+p249
+sI105
+S"                if data[0] == 'yes':"
+p250
+sI106
+S"                    if ':' in data[1]:  # for Compatibility with Custom CAS"
+p251
+ssg89
+S'(self=<gluon.contrib.login_methods.cas_auth.CasAuth object>)'
+p252
+sg91
+S'_CAS_login'
+p253
+sa(dp254
+g68
+S'/usr/lib/python2.7/urllib.py'
+p255
+sg70
+(dp256
+S'url'
+p257
+S"'https://login.iiit.ac.in/cas/validate?service=ht...ex/login&ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas'"
+p258
+sS'opener'
+p259
+S'<gluon.contrib.autolinks.VimeoURLOpener instance>'
+p260
+sS'opener.open'
+p261
+S'<bound method VimeoURLOpener.open of <gluon.contrib.autolinks.VimeoURLOpener instance>>'
+p262
+ssg76
+I86
+sg77
+(dp263
+I81
+S'        opener = FancyURLopener()'
+p264
+sI82
+S'        _urlopener = opener'
+p265
+sI83
+S'    else:'
+p266
+sI84
+S'        opener = _urlopener'
+p267
+sI85
+S'    if data is None:'
+p268
+sI86
+S'        return opener.open(url)'
+p269
+sI87
+S'    else:'
+p270
+sI88
+S'        return opener.open(url, data)'
+p271
+sI89
+S'def urlretrieve(url, filename=None, reporthook=None, data=None):'
+p272
+sI90
+S'    global _urlopener'
+p273
+ssg89
+S"(url='https://login.iiit.ac.in/cas/validate?service=ht...ex/login&ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas', data=None, proxies=None)"
+p274
+sg91
+S'urlopen'
+p275
+sa(dp276
+g68
+S'/usr/lib/python2.7/urllib.py'
+p277
+sg70
+(dp278
+S'url'
+p279
+S"('proxy.iiit.ac.in:8080', 'https://login.iiit.ac.in/cas/validate?service=ht...ex/login&ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas')"
+p280
+sS'self'
+p281
+S'<gluon.contrib.autolinks.VimeoURLOpener instance>'
+p282
+sS'builtingetattr'
+p283
+S'<built-in function getattr>'
+p284
+sS'name'
+p285
+S"'open_https'"
+p286
+ssg76
+I207
+sg77
+(dp287
+I202
+S'                return self.open_unknown_proxy(proxy, fullurl, data)'
+p288
+sI203
+S'            else:'
+p289
+sI204
+S'                return self.open_unknown(fullurl, data)'
+p290
+sI205
+S'        try:'
+p291
+sI206
+S'            if data is None:'
+p292
+sI207
+S'                return getattr(self, name)(url)'
+p293
+sI208
+S'            else:'
+p294
+sI209
+S'                return getattr(self, name)(url, data)'
+p295
+sI210
+S'        except socket.error, msg:'
+p296
+sI211
+S"            raise IOError, ('socket error', msg), sys.exc_info()[2]"
+p297
+ssg89
+S"(self=<gluon.contrib.autolinks.VimeoURLOpener instance>, fullurl='https://login.iiit.ac.in/cas/validate?service=ht...ex/login&ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas', data=None)"
+p298
+sg91
+S'open'
+p299
+sa(dp300
+g68
+S'/usr/lib/python2.7/urllib.py'
+p301
+sg70
+(dp302
+S'h'
+S'<httplib.HTTPS instance>'
+p303
+sS'data'
+p304
+S'None'
+p305
+sS'h.endheaders'
+p306
+S'<bound method HTTPSConnection.endheaders of <httplib.HTTPSConnection instance>>'
+p307
+ssg76
+I436
+sg77
+(dp308
+I431
+S"                h.putrequest('GET', selector)"
+p309
+sI432
+S"            if proxy_auth: h.putheader('Proxy-Authorization', 'Basic %s' % proxy_auth)"
+p310
+sI433
+S"            if auth: h.putheader('Authorization', 'Basic %s' % auth)"
+p311
+sI434
+S"            if realhost: h.putheader('Host', realhost)"
+p312
+sI435
+S'            for args in self.addheaders: h.putheader(*args)'
+p313
+sI436
+S'            h.endheaders(data)'
+p314
+sI437
+S'            errcode, errmsg, headers = h.getreply()'
+p315
+sI438
+S'            fp = h.getfile()'
+p316
+sI439
+S'            if errcode == -1:'
+p317
+sI440
+S'                if fp: fp.close()'
+p318
+ssg89
+S"(self=<gluon.contrib.autolinks.VimeoURLOpener instance>, url='//login.iiit.ac.in/cas/validate?service=http://1...ex/login&ticket=ST-31032-i3rWmYnomdG1qvGfX1Si-cas', data=None)"
+p319
+sg91
+S'open_https'
+p320
+sa(dp321
+g68
+S'/usr/lib/python2.7/httplib.py'
+p322
+sg70
+(dp323
+S'message_body'
+p324
+S'None'
+p325
+sS'self'
+p326
+S'<httplib.HTTPSConnection instance>'
+p327
+sS'self._send_output'
+p328
+S'<bound method HTTPSConnection._send_output of <httplib.HTTPSConnection instance>>'
+p329
+ssg76
+I954
+sg77
+(dp330
+I949
+S'        """'
+p331
+sI950
+S'        if self.__state == _CS_REQ_STARTED:'
+p332
+sI951
+S'            self.__state = _CS_REQ_SENT'
+p333
+sI952
+S'        else:'
+p334
+sI953
+S'            raise CannotSendHeader()'
+p335
+sI954
+S'        self._send_output(message_body)'
+p336
+sI955
+S''
+sI956
+S'    def request(self, method, url, body=None, headers={}):'
+p337
+sI957
+S'        """Send a complete request to the server."""'
+p338
+sI958
+S'        self._send_request(method, url, body, headers)'
+p339
+ssg89
+S'(self=<httplib.HTTPSConnection instance>, message_body=None)'
+p340
+sg91
+S'endheaders'
+p341
+sa(dp342
+g68
+S'/usr/lib/python2.7/httplib.py'
+p343
+sg70
+(dp344
+S'msg'
+p345
+S"'GET https://login.iiit.ac.in/cas/validate?servic...st: login.iiit.ac.in\\r\\nUser-Agent: Mozilla/4.0\\r\\n\\r\\n'"
+p346
+sS'self'
+p347
+S'<httplib.HTTPSConnection instance>'
+p348
+sS'self.send'
+p349
+S'<bound method HTTPSConnection.send of <httplib.HTTPSConnection instance>>'
+p350
+ssg76
+I814
+sg77
+(dp351
+I809
+S'        # it will avoid performance problems caused by the interaction'
+p352
+sI810
+S'        # between delayed ack and the Nagle algorithm.'
+p353
+sI811
+S'        if isinstance(message_body, str):'
+p354
+sI812
+S'            msg += message_body'
+p355
+sI813
+S'            message_body = None'
+p356
+sI814
+S'        self.send(msg)'
+p357
+sI815
+S'        if message_body is not None:'
+p358
+sI816
+S'            #message_body was not a string (i.e. it is a file) and'
+p359
+sI817
+S'            #we must run the risk of Nagle'
+p360
+sI818
+S'            self.send(message_body)'
+p361
+ssg89
+S'(self=<httplib.HTTPSConnection instance>, message_body=None)'
+p362
+sg91
+S'_send_output'
+p363
+sa(dp364
+g68
+S'/usr/lib/python2.7/httplib.py'
+p365
+sg70
+(dp366
+S'self'
+p367
+S'<httplib.HTTPSConnection instance>'
+p368
+sS'self.connect'
+p369
+S'<bound method HTTPSConnection.connect of <httplib.HTTPSConnection instance>>'
+p370
+ssg76
+I776
+sg77
+(dp371
+I771
+S''
+sI772
+S'    def send(self, data):'
+p372
+sI773
+S'        """Send `data\' to the server."""'
+p373
+sI774
+S'        if self.sock is None:'
+p374
+sI775
+S'            if self.auto_open:'
+p375
+sI776
+S'                self.connect()'
+p376
+sI777
+S'            else:'
+p377
+sI778
+S'                raise NotConnected()'
+p378
+sI779
+S''
+sI780
+S'        if self.debuglevel > 0:'
+p379
+ssg89
+S"(self=<httplib.HTTPSConnection instance>, data='GET https://login.iiit.ac.in/cas/validate?servic...st: login.iiit.ac.in\\r\\nUser-Agent: Mozilla/4.0\\r\\n\\r\\n')"
+p380
+sg91
+S'send'
+p381
+sa(dp382
+g68
+S'/usr/lib/python2.7/httplib.py'
+p383
+sg70
+(dp384
+S'global ssl'
+p385
+S"<module 'ssl' from '/usr/lib/python2.7/ssl.pyc'>"
+p386
+sS'self'
+p387
+S'<httplib.HTTPSConnection instance>'
+p388
+sS'sock'
+p389
+S'<socket._socketobject object>'
+p390
+sS'self.cert_file'
+p391
+S'None'
+p392
+sS'self.key_file'
+p393
+S'None'
+p394
+sS'ssl.wrap_socket'
+p395
+S'<function wrap_socket>'
+p396
+sS'self.sock'
+p397
+S'None'
+p398
+ssg76
+I1161
+sg77
+(dp399
+I1156
+S'            sock = socket.create_connection((self.host, self.port),'
+p400
+sI1157
+S'                                            self.timeout, self.source_address)'
+p401
+sI1158
+S'            if self._tunnel_host:'
+p402
+sI1159
+S'                self.sock = sock'
+p403
+sI1160
+S'                self._tunnel()'
+p404
+sI1161
+S'            self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)'
+p405
+sI1162
+S''
+sI1163
+S'    __all__.append("HTTPSConnection")'
+p406
+sI1164
+S''
+sI1165
+S'    class HTTPS(HTTP):'
+p407
+ssg89
+S'(self=<httplib.HTTPSConnection instance>)'
+p408
+sg91
+S'connect'
+p409
+sa(dp410
+g68
+S'/usr/lib/python2.7/ssl.py'
+p411
+sg70
+(dp412
+S'ciphers'
+p413
+S'None'
+p414
+ssg76
+I381
+sg77
+(dp415
+I384
+S'# some utility functions'
+p416
+sI385
+S''
+sI376
+S'    return SSLSocket(sock, keyfile=keyfile, certfile=certfile,'
+p417
+sI377
+S'                     server_side=server_side, cert_reqs=cert_reqs,'
+p418
+sI378
+S'                     ssl_version=ssl_version, ca_certs=ca_certs,'
+p419
+sI379
+S'                     do_handshake_on_connect=do_handshake_on_connect,'
+p420
+sI380
+S'                     suppress_ragged_eofs=suppress_ragged_eofs,'
+p421
+sI381
+S'                     ciphers=ciphers)'
+p422
+sI382
+S''
+sI383
+S''
+ssg89
+S'(sock=<socket._socketobject object>, keyfile=None, certfile=None, server_side=False, cert_reqs=0, ssl_version=2, ca_certs=None, do_handshake_on_connect=True, suppress_ragged_eofs=True, ciphers=None)'
+p423
+sg91
+S'wrap_socket'
+p424
+sa(dp425
+g68
+S'/usr/lib/python2.7/ssl.py'
+p426
+sg70
+(dp427
+S'self'
+p428
+S'<ssl.SSLSocket object>'
+p429
+sS'self.do_handshake'
+p430
+S'<bound method SSLSocket.do_handshake of <ssl.SSLSocket object>>'
+p431
+ssg76
+I143
+sg77
+(dp432
+I138
+S'            self._sslobj = _ssl.sslwrap(self._sock, server_side,'
+p433
+sI139
+S'                                        keyfile, certfile,'
+p434
+sI140
+S'                                        cert_reqs, ssl_version, ca_certs,'
+p435
+sI141
+S'                                        ciphers)'
+p436
+sI142
+S'            if do_handshake_on_connect:'
+p437
+sI143
+S'                self.do_handshake()'
+p438
+sI144
+S'        self.keyfile = keyfile'
+p439
+sI145
+S'        self.certfile = certfile'
+p440
+sI146
+S'        self.cert_reqs = cert_reqs'
+p441
+sI147
+S'        self.ssl_version = ssl_version'
+p442
+ssg89
+S"(self=<ssl.SSLSocket object>, sock=<socket._socketobject object>, keyfile=None, certfile=None, server_side=False, cert_reqs=0, ssl_version=2, ca_certs=None, do_handshake_on_connect=True, suppress_ragged_eofs=True, ciphers='DEFAULT:!aNULL:!eNULL:!LOW:!EXPORT:!SSLv2')"
+p443
+sg91
+g22
+sa(dp444
+g68
+S'/usr/lib/python2.7/ssl.py'
+p445
+sg70
+(dp446
+S'self._sslobj.do_handshake'
+p447
+S'<built-in method do_handshake of ssl.SSLContext object>'
+p448
+sS'self'
+p449
+S'<ssl.SSLSocket object>'
+p450
+sS'self._sslobj'
+p451
+S'<ssl.SSLContext object>'
+p452
+ssg76
+I305
+sg77
+(dp453
+I300
+S''
+sI301
+S'    def do_handshake(self):'
+p454
+sI302
+S''
+sI303
+S'        """Perform a TLS/SSL handshake."""'
+p455
+sI304
+S''
+sI305
+S'        self._sslobj.do_handshake()'
+p456
+sI306
+S''
+sI307
+S'    def _real_connect(self, addr, return_errno):'
+p457
+sI308
+S'        # Here we assume that the socket is client-side, and not'
+p458
+sI309
+S'        # connected at the time of the call.  We connect it, then wrap it.'
+p459
+ssg89
+S'(self=<ssl.SSLSocket object>)'
+p460
+sg91
+S'do_handshake'
+p461
+sasS'pyver'
+p462
+S'Python 2.7.3: /usr/bin/python (prefix: /usr)'
+p463
+sS'session'
+p464
+g63
+(S's\x8b\x00\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top">counter</td><td valign="top">:</td><td><div>3</div></td></tr></table></div>'
+tRp465
+sS'etype'
+p466
+S"<type 'exceptions.IOError'>"
+p467
+sS'date'
+p468
+S'Thu Oct 24 02:21:09 2013'
+p469
+sS'response'
+p470
+g63
+(S's\\\x19\x00\x00<div><table><tr><td style="font-weight:bold;vertical-align:top">body</td><td valign="top">:</td><td><div>&lt;cStringIO.StringO object at 0xb17d0e40&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">cookies</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">session_id_libman</td><td valign="top">:</td><td><div>127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e<table><tr><td style="font-weight:bold;vertical-align:top">comment</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">domain</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">expires</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">httponly</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">max-age</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">path</td><td valign="top">:</td><td><div>/</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">secure</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">version</td><td valign="top">:</td><td><div></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">delimiters</td><td valign="top">:</td><td><div><table><tr><td><div>{{</div></td></tr><tr><td><div>}}</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">files</td><td valign="top">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">flash</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">generic_patterns</td><td valign="top">:</td><td><div><table><tr><td><div>*</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">google_analytics_id</td><td valign="top">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">headers</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">X-Powered-By</td><td valign="top">:</td><td><div>web2py</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">logo</td><td valign="top">:</td><td><div><a class="brand" href="http://127.0.0.1:8000/LibMan/default/profile"><b>LibMan</b>&trade;&nbsp;</a></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">menu</td><td valign="top">:</td><td><div><table><tr><td><div><table><tr><td><div>Home</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/LibMan/default/index</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Search</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/LibMan/default/search</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>FAQs</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/LibMan/default/faq</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr><tr><td><div><table><tr><td><div>Rate a Book</div></td></tr><tr><td><div>False</div></td></tr><tr><td><div>/LibMan/default/rate</div></td></tr><tr><td><div><table></table></div></td></tr></table></div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">meta</td><td valign="top">:</td><td><div><table><tr><td style="font-weight:bold;vertical-align:top">author</td><td valign="top">:</td><td><div>Your Name &lt;you@example.com&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">description</td><td valign="top">:</td><td><div>a cool new app</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">generator</td><td valign="top">:</td><td><div>Web2py Web Framework</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">keywords</td><td valign="top">:</td><td><div>web2py, python, framework</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">models_to_run</td><td valign="top">:</td><td><div><table><tr><td><div>^\\w+\\.py$</div></td></tr><tr><td><div>^default/\\w+\\.py$</div></td></tr><tr><td><div>^default/index/\\w+\\.py$</div></td></tr></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">postprocessing</td><td valign="top">:</td><td><div><table></table></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_cookie_expires</td><td valign="top">:</td><td><div>None</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_data_name</td><td valign="top">:</td><td><div>session_data_libman</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_file</td><td valign="top">:</td><td><div>&lt;open file &#x27;/home/mohit/web2py/applications/LibMan/sessions/127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e&#x27;, mode &#x27;rb+&#x27; at 0xad828910&gt;</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_filename</td><td valign="top">:</td><td><div>/home/mohit/web2py/applications/LibMan/sessions/127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_id</td><td valign="top">:</td><td><div>127.0.0.1-03abfdf2-d779-42e2-aace-48a2c051708e</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_id_name</td><td valign="top">:</td><td><div>session_id_libman</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_locked</td><td valign="top">:</td><td><div>True</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_new</td><td valign="top">:</td><td><div>False</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">session_storage_type</td><td valign="top">:</td><td><div>file</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">status</td><td valign="top">:</td><td><div>200</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">subtitle</td><td valign="top">:</td><td><div></div></td></tr><tr><td style="font-weight:bold;vertical-align:top">title</td><td valign="top">:</td><td><div>Libman</div></td></tr><tr><td style="font-weight:bold;vertical-align:top">view</td><td valign="top">:</td><td><div>default/index.html</div></td></tr></table></div>'
+tRp471
+sS'locals'
+p472
+(dp473
+S'self'
+p474
+S'<ssl.SSLSocket object>'
+p475
+sssS'traceback'
+p476
+S'Traceback (most recent call last):\n  File "/home/mohit/web2py/gluon/restricted.py", line 212, in restricted\n    exec ccode in environment\n  File "/home/mohit/web2py/applications/LibMan/controllers/default.py", line 233, in <module>\n  File "/home/mohit/web2py/gluon/globals.py", line 194, in <lambda>\n    self._caller = lambda f: f()\n  File "/home/mohit/web2py/applications/LibMan/controllers/default.py", line 179, in index\n    return dict(message=T(\'Hello World\'),counter=session.counter,form=auth())\n  File "/home/mohit/web2py/gluon/tools.py", line 1286, in __call__\n    return getattr(self, args[0])()\n  File "/home/mohit/web2py/gluon/tools.py", line 2176, in login\n    redirect(cas.login_url(next),\n  File "/home/mohit/web2py/gluon/contrib/login_methods/cas_auth.py", line 70, in login_url\n    current.session.token = self._CAS_login()\n  File "/home/mohit/web2py/gluon/contrib/login_methods/cas_auth.py", line 102, in _CAS_login\n    data = urllib.urlopen(url).read()\n  File "/usr/lib/python2.7/urllib.py", line 86, in urlopen\n    return opener.open(url)\n  File "/usr/lib/python2.7/urllib.py", line 207, in open\n    return getattr(self, name)(url)\n  File "/usr/lib/python2.7/urllib.py", line 436, in open_https\n    h.endheaders(data)\n  File "/usr/lib/python2.7/httplib.py", line 954, in endheaders\n    self._send_output(message_body)\n  File "/usr/lib/python2.7/httplib.py", line 814, in _send_output\n    self.send(msg)\n  File "/usr/lib/python2.7/httplib.py", line 776, in send\n    self.connect()\n  File "/usr/lib/python2.7/httplib.py", line 1161, in connect\n    self.sock = ssl.wrap_socket(sock, self.key_file, self.cert_file)\n  File "/usr/lib/python2.7/ssl.py", line 381, in wrap_socket\n    ciphers=ciphers)\n  File "/usr/lib/python2.7/ssl.py", line 143, in __init__\n    self.do_handshake()\n  File "/usr/lib/python2.7/ssl.py", line 305, in do_handshake\n    self._sslobj.do_handshake()\nIOError: [Errno socket error] [Errno 1] _ssl.c:504: error:140770FC:SSL routines:SSL23_GET_SERVER_HELLO:unknown protocol\n'
+p477
+s.

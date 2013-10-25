@@ -1,0 +1,198 @@
+timestamp: 2013-03-18T19:51:53.546172
+CREATE TABLE auth_user(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    first_name CHAR(128),
+    last_name CHAR(128),
+    email CHAR(512),
+    password CHAR(512),
+    registration_key CHAR(512),
+    reset_password_key CHAR(512),
+    registration_id CHAR(512)
+);
+success!
+timestamp: 2013-03-18T19:51:53.694441
+CREATE TABLE auth_group(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    role CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2013-03-18T19:51:53.805510
+CREATE TABLE auth_membership(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE
+);
+success!
+timestamp: 2013-03-18T19:51:53.920097
+CREATE TABLE auth_permission(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    group_id INTEGER REFERENCES auth_group (id) ON DELETE CASCADE,
+    name CHAR(512),
+    table_name CHAR(512),
+    record_id INTEGER
+);
+success!
+timestamp: 2013-03-18T19:51:54.032754
+CREATE TABLE auth_event(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    time_stamp TIMESTAMP,
+    client_ip CHAR(512),
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    origin CHAR(512),
+    description TEXT
+);
+success!
+timestamp: 2013-03-18T19:51:54.167335
+CREATE TABLE auth_cas(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    user_id INTEGER REFERENCES auth_user (id) ON DELETE CASCADE,
+    created_on TIMESTAMP,
+    service CHAR(512),
+    ticket CHAR(512),
+    renew CHAR(1)
+);
+success!
+timestamp: 2013-03-18T19:53:01.526775
+CREATE TABLE stud_reg(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    userid CHAR(512) UNIQUE,
+    passwd CHAR(512),
+    confpasswd CHAR(512),
+    branch CHAR(512),
+    email CHAR(512),
+    phone INTEGER
+);
+success!
+timestamp: 2013-03-18T20:11:45.829120
+ALTER TABLE stud_reg ADD roll INTEGER UNIQUE;
+timestamp: 2013-03-18T20:14:14.041674
+ALTER TABLE stud_reg ADD roll INTEGER UNIQUE;
+timestamp: 2013-03-18T20:18:07.408009
+ALTER TABLE stud_reg ADD roll INTEGER UNIQUE;
+timestamp: 2013-03-18T20:23:11.957542
+ALTER TABLE stud_reg ADD roll INTEGER UNIQUE;
+timestamp: 2013-03-18T22:33:36.074963
+ALTER TABLE stud_reg ADD roll INTEGER UNIQUE;
+timestamp: 2013-03-18T22:51:55.952523
+ALTER TABLE stud_reg ADD roll INTEGER;
+timestamp: 2013-03-18T22:51:56.102457
+CREATE TABLE fac_reg(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    name CHAR(512),
+    userid CHAR(512),
+    area TEXT,
+    passwd CHAR(512),
+    confpasswd CHAR(512),
+    email CHAR(512),
+    phone INTEGER
+);
+success!
+timestamp: 2013-03-18T23:25:29.456779
+CREATE TABLE books(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    isbn INTEGER UNIQUE,
+    name CHAR(512),
+    subject CHAR(512),
+    author CHAR(512),
+    publisher CHAR(512),
+    edition INTEGER,
+    copies INTEGER,
+    canbe CHAR(512)
+);
+success!
+timestamp: 2013-03-24T17:28:43.784531
+ALTER TABLE auth_user ADD category CHAR(512);
+timestamp: 2013-03-24T17:28:43.954793
+ALTER TABLE auth_user ADD name CHAR(512);
+timestamp: 2013-03-24T17:28:44.134661
+ALTER TABLE auth_user ADD passwd CHAR(512);
+timestamp: 2013-03-24T17:28:44.280914
+ALTER TABLE auth_user ADD roll INTEGER UNIQUE;
+timestamp: 2013-03-28T21:17:32.019613
+ALTER TABLE stud_reg ADD category CHAR(512);
+timestamp: 2013-03-31T11:30:58.646869
+ALTER TABLE auth_user ADD username CHAR(128);
+timestamp: 2013-03-31T11:30:58.799941
+ALTER TABLE auth_user ADD category CHAR(512);
+timestamp: 2013-03-31T12:07:25.972554
+ALTER TABLE auth_user ADD username CHAR(128);
+timestamp: 2013-04-02T23:39:41.559299
+ALTER TABLE auth_user ADD category CHAR(512);
+timestamp: 2013-04-04T14:43:51.334305
+ALTER TABLE books ADD issued INTEGER;
+timestamp: 2013-04-04T16:40:30.207950
+ALTER TABLE auth_user ADD phone INTEGER;
+timestamp: 2013-04-04T16:45:20.733756
+ALTER TABLE auth_user ADD usertype CHAR(512);
+timestamp: 2013-04-04T16:45:20.904328
+ALTER TABLE auth_user ADD photo CHAR(512);
+timestamp: 2013-04-04T17:37:58.658231
+CREATE TABLE questions(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question CHAR(512) UNIQUE
+);
+success!
+timestamp: 2013-04-04T21:30:01.296209
+CREATE TABLE answers(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    question INTEGER REFERENCES questions (id) ON DELETE CASCADE,
+    answer TEXT
+);
+success!
+timestamp: 2013-04-05T19:54:32.730758
+ALTER TABLE auth_user ADD age INTEGER;
+timestamp: 2013-04-05T19:54:32.907130
+ALTER TABLE auth_user ADD sex CHAR(512);
+timestamp: 2013-04-05T22:13:53.646048
+CREATE TABLE newbookreq(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book CHAR(512) UNIQUE,
+    author CHAR(512),
+    edition INTEGER,
+    publisher CHAR(512)
+);
+success!
+timestamp: 2013-04-05T22:13:53.852310
+CREATE TABLE bookresponse(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    book INTEGER REFERENCES newbookreq (id) ON DELETE CASCADE,
+    status CHAR(512)
+);
+success!
+timestamp: 2013-04-06T20:52:44.036336
+CREATE TABLE issue(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    userid INTEGER,
+    bookid INTEGER
+);
+success!
+timestamp: 2013-04-07T02:40:40.015754
+ALTER TABLE books ADD photo CHAR(512);
+timestamp: 2013-04-14T17:47:30.908616
+ALTER TABLE issue ADD stat CHAR(1);
+timestamp: 2013-04-14T18:10:17.003436
+ALTER TABLE issue ADD idate TIMESTAMP;
+timestamp: 2013-04-26T03:38:17.425667
+CREATE TABLE authtalk(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    subject CHAR(512),
+    conte TEXT
+);
+success!
+timestamp: 2013-04-26T03:55:01.700981
+CREATE TABLE usertalk(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    reciever CHAR(512),
+    subject CHAR(512),
+    conte TEXT
+);
+success!
+timestamp: 2013-04-30T12:13:23.217203
+CREATE TABLE rate(
+    id INTEGER PRIMARY KEY AUTOINCREMENT,
+    bookid INTEGER REFERENCES books (id) ON DELETE CASCADE,
+    rating DOUBLE
+);
+success!
